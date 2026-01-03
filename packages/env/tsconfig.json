@@ -1,0 +1,3 @@
+{
+  "extends": "@100x-sem-1-assignment/config/tsconfig.base.json"
+}
