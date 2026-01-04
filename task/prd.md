@@ -134,59 +134,63 @@ ws://localhost:3000/ws?token=<JWT_TOKEN>
 ### File: `/packages/db/src/schema.ts`
 
 ```typescript
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, uuid, pgEnum } from "drizzle-orm/pg-core";
 
-export const users = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name').notNull(),
-  email: text('email').unique().notNull(),
-  password: text('password').notNull(),  // bcrypt hashed
-  role: text('role').$type<'teacher' | 'student'>().notNull()
+const userRole = pgEnum("user_role", ["teacher", "student"]);
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  role: userRole("role").notNull().default("student"),
 });
 
-export const classes = pgTable('classes', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  className: text('class_name').notNull(),
-  teacherId: uuid('teacher_id').notNull().references(() => users.id),
-  studentIds: text('student_ids').array().notNull().default([])
+export const classes = pgTable("classes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  className: text("class_name").notNull(),
+  teacherId: uuid("teacher_id").references(() => users.id),
+  studentIds: uuid("student_ids").array().notNull().default([]),
 });
 
-export const attendance = pgTable('attendance', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  classId: uuid('class_id').notNull().references(() => classes.id),
-  studentId: uuid('student_id').notNull().references(() => users.id),
-  status: text('status').$type<'present' | 'absent'>().notNull()
+const attendanceStatus = pgEnum("attendance_status", ["present", "absent"]);
+
+export const attendance = pgTable("attendance", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id").references(() => classes.id),
+  studentId: uuid("student_id").references(() => users.id),
+  status: attendanceStatus("status").notNull().default("absent"),
 });
 ```
 
 ### File: `/packages/db/src/relations.ts`
 
 ```typescript
-import { relations } from 'drizzle-orm';
-import { users, classes, attendance } from './schema';
+import { defineRelations } from 'drizzle-orm';
+import * as schema from './schema';
 
-export const usersRelations = relations(users, ({ many }) => ({
-  taughtClasses: many(classes),
-  attendanceRecords: many(attendance)
-}));
-
-export const classesRelations = relations(classes, ({ one, many }) => ({
-  teacher: one(users, {
-    fields: [classes.teacherId],
-    references: [users.id]
-  }),
-  attendanceRecords: many(attendance)
-}));
-
-export const attendanceRelations = relations(attendance, ({ one }) => ({
-  class: one(classes, {
-    fields: [attendance.classId],
-    references: [classes.id]
-  }),
-  student: one(users, {
-    fields: [attendance.studentId],
-    references: [users.id]
-  })
+export const relations = defineRelations(schema, (r) => ({
+  users: {
+    taughtClasses: r.many.classes(),
+    attendanceRecords: r.many.attendance()
+  },
+  classes: {
+    teacher: r.one.users({
+      from: r.classes.teacherId,
+      to: r.users.id
+    }),
+    attendanceRecords: r.many.attendance()
+  },
+  attendance: {
+    class: r.one.classes({
+      from: r.attendance.classId,
+      to: r.classes.id
+    }),
+    student: r.one.users({
+      from: r.attendance.studentId,
+      to: r.users.id
+    })
+  }
 }));
 ```
 
