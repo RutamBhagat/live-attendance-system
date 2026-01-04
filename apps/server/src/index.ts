@@ -22,10 +22,12 @@ import { serve } from "@hono/node-server";
 import { authRouter } from "./routes/auth";
 import { classRouter } from "./routes/class";
 import { attendanceRouter } from "./routes/attendance";
+import { studentsRouter } from "./routes/students";
 
 app.route("/auth", authRouter);
 app.route("/class", classRouter);
-app.route("/", attendanceRouter);
+app.route("/students", studentsRouter);
+app.route("/attendance", attendanceRouter);
 
 serve(
   {
