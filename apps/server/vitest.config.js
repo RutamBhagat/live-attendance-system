@@ -7,11 +7,8 @@ export default defineConfig({
     hookTimeout: 30000,
     // Run tests sequentially to avoid conflicts with the single active session constraint
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    maxWorkers: 1,
+    isolate: false,
     // Ensure tests run one at a time
     sequence: {
       concurrent: false,

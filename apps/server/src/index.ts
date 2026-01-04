@@ -24,7 +24,7 @@ import { classRouter } from "./routes/class";
 import { attendanceRouter } from "./routes/attendance";
 
 app.route("/auth", authRouter);
-app.route("/", classRouter);
+app.route("/class", classRouter);
 app.route("/", attendanceRouter);
 
 serve(
