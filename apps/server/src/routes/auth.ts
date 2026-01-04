@@ -6,10 +6,10 @@ import { z } from "zod";
 export const authRouter = new Hono();
 
 const signupSchema = z.object({
-  name: z.string({ message: "Invaild request schema" }).min(1),
-  email: z.email({ message: "Invaild request schema" }),
-  password: z.string({ message: "Invaild request schema" }).min(6),
-  role: z.enum(["teacher", "student"], { message: "Invaild request schema" }),
+  name: z.string().min(1),
+  email: z.email(),
+  password: z.string().min(6),
+  role: z.enum(["teacher", "student"]),
 });
 
 const loginSchema = z.object({

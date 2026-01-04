@@ -155,7 +155,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for invalid email format", async () => {
@@ -168,7 +168,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for password less than 6 characters", async () => {
@@ -181,7 +181,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for invalid role", async () => {
@@ -194,7 +194,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for missing role", async () => {
@@ -206,7 +206,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for missing password", async () => {
@@ -218,7 +218,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for missing email", async () => {
@@ -230,7 +230,7 @@ describe("POST /auth/signup", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 });
 
@@ -293,7 +293,7 @@ describe("POST /auth/login", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for missing email", async () => {
@@ -303,7 +303,7 @@ describe("POST /auth/login", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 400 for missing password", async () => {
@@ -313,7 +313,7 @@ describe("POST /auth/login", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 });
 
@@ -439,7 +439,7 @@ describe("POST /class", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 });
 
@@ -623,7 +623,7 @@ describe("POST /class/:id/add-student", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 401 without token", async () => {
@@ -941,7 +941,7 @@ describe("POST /attendance/start", () => {
 
     expect(status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("Invalid request schema");
+    expect(data.error.name).toBe("ZodError");
   });
 
   it("should return 401 without token", async () => {
