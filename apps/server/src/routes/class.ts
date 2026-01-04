@@ -103,3 +103,46 @@ classRouter.post(
     return c.json({ success: true, data: updatedClass }, 200);
   }
 );
+
+classRouter.get("/:id", authMiddleware, async (c) => {
+  const { userId, role } = c.get("user");
+  const id = c.req.param("id");
+
+  const classData = await db.query.classes.findFirst({
+    where: { id },
+  });
+
+  if (!classData) {
+    return c.json({ success: false, error: "Class not found" }, 404);
+  }
+
+  if (role === "teacher" && classData.teacherId !== userId) {
+    return c.json(
+      { success: false, error: "Forbidden, not class teacher" },
+      403
+    );
+  }
+
+  if (role === "student" && !classData.studentIds.includes(userId)) {
+    return c.json(
+      { success: false, error: "Forbidden, not class teacher" },
+      403
+    );
+  }
+
+  const students = [];
+
+  for (const studentId of classData.studentIds) {
+    const student = await db.query.users.findFirst({
+      where: { id: studentId },
+    });
+    if (student) {
+      students.push({
+        id: student.id,
+        name: student.name,
+        email: student.email,
+      });
+    }
+  }
+  return c.json({ success: true, data: { ...classData, students } }, 200);
+});
