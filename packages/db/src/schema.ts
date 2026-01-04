@@ -2,6 +2,7 @@ import { pgTable, text, uuid, pgEnum } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const userRole = pgEnum("user_role", ["teacher", "student"]);
+export const attendanceStatus = pgEnum("attendance_status", ["present", "absent"]);
 
 export type UserRole = (typeof userRole.enumValues)[number];
 export const UserRoleSchema = z.enum(userRole.enumValues);
@@ -20,8 +21,6 @@ export const classes = pgTable("classes", {
   teacherId: uuid("teacher_id").references(() => users.id),
   studentIds: uuid("student_ids").array().notNull().default([]),
 });
-
-const attendanceStatus = pgEnum("attendance_status", ["present", "absent"]);
 
 export const attendance = pgTable("attendance", {
   id: uuid("id").primaryKey().defaultRandom(),
