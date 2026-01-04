@@ -7,7 +7,7 @@ import { env } from "@100x-sem-1-assignment/env/server";
 import jwt from "jsonwebtoken";
 import { authMiddleware, JWTPayloadSchema } from "@/middleware/auth";
 
-type AuthVariables = {
+export type AuthVariables = {
   user: z.infer<typeof JWTPayloadSchema>;
 };
 

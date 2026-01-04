@@ -5,3 +5,4 @@ import { relations } from "./relations";
 
 export const db = drizzle(env.DATABASE_URL, { relations });
 export * from "./schema";
+export { eq, and } from "drizzle-orm";
