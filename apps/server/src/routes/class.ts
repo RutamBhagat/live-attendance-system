@@ -18,19 +18,20 @@ const addStudentSchema = z.object({
 
 classRouter.post(
   "/",
+  authMiddleware,
+  requireRole("teacher"),
   zValidator("json", createClassSchema, (result, c) => {
     if (!result.success) {
       return c.json({ success: false, error: "Invalid request schema" }, 400);
     }
   }),
-  authMiddleware,
-  requireRole("teacher"),
   async (c) => {
+    const { userId } = c.get("user");
     const { className } = c.req.valid("json");
 
     const [newClass] = await db
       .insert(classes)
-      .values({ className })
+      .values({ className, teacherId: userId })
       .returning();
 
     if (!newClass) {
@@ -43,22 +44,21 @@ classRouter.post(
 
 classRouter.post(
   "/:id/add-student",
+  authMiddleware,
+  requireRole("teacher"),
   zValidator("json", addStudentSchema, (result, c) => {
     if (!result.success) {
       return c.json({ success: false, error: "Invalid request schema" }, 400);
     }
   }),
-  authMiddleware,
-  requireRole("teacher"),
   async (c) => {
-    const { userId, role } = c.get("user");
+    const { userId } = c.get("user");
     const id = c.req.param("id");
     const { studentId } = c.req.valid("json");
 
     const classData = await db.query.classes.findFirst({
       where: {
         id,
-        teacherId: userId,
       },
     });
 
@@ -73,10 +73,6 @@ classRouter.post(
       );
     }
 
-    if (classData.studentIds.includes(studentId)) {
-      return c.json({ success: false, error: "Student already in class" }, 400);
-    }
-
     const student = await db.query.users.findFirst({
       where: { id: studentId, role: "student" },
     });
@@ -85,10 +81,14 @@ classRouter.post(
       return c.json({ success: false, error: "Student not found" }, 404);
     }
 
-    const updatedClass = await db
+    const newStudentIds = classData.studentIds.includes(studentId)
+      ? classData.studentIds
+      : [...classData.studentIds, studentId];
+
+    const [updatedClass] = await db
       .update(classes)
       .set({
-        studentIds: [...classData.studentIds, studentId],
+        studentIds: newStudentIds,
       })
       .where(eq(classes.id, id))
       .returning();
