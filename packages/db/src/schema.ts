@@ -19,7 +19,6 @@ export const classes = pgTable("classes", {
   id: uuid("id").primaryKey().defaultRandom(),
   className: text("class_name").notNull(),
   teacherId: uuid("teacher_id").references(() => users.id),
-  studentIds: uuid("student_ids").array().notNull().default([]),
 });
 
 export const attendance = pgTable("attendance", {
@@ -27,4 +26,10 @@ export const attendance = pgTable("attendance", {
   classId: uuid("class_id").references(() => classes.id),
   studentId: uuid("student_id").references(() => users.id),
   status: attendanceStatus("status").notNull().default("absent"),
+});
+
+export const classEnrollments = pgTable("class_enrollments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  studentId: uuid("student_id").notNull().references(() => users.id),
 });

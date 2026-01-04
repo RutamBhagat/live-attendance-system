@@ -5,6 +5,7 @@ export const relations = defineRelations(schema, (r) => ({
   users: {
     taughtClasses: r.many.classes(),
     attendanceRecords: r.many.attendance(),
+    enrollments: r.many.classEnrollments(),
   },
   classes: {
     teacher: r.one.users({
@@ -12,6 +13,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.users.id,
     }),
     attendanceRecords: r.many.attendance(),
+    enrollments: r.many.classEnrollments(),
   },
   attendance: {
     class: r.one.classes({
@@ -20,6 +22,16 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     student: r.one.users({
       from: r.attendance.studentId,
+      to: r.users.id,
+    }),
+  },
+  classEnrollments: {
+    class: r.one.classes({
+      from: r.classEnrollments.classId,
+      to: r.classes.id,
+    }),
+    student: r.one.users({
+      from: r.classEnrollments.studentId,
       to: r.users.id,
     }),
   },

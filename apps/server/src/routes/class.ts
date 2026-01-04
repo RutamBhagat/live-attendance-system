@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { db, eq } from "@100x-sem-1-assignment/db";
-import { classes } from "@100x-sem-1-assignment/db/schema";
+import { db } from "@100x-sem-1-assignment/db";
+import { classes, classEnrollments } from "@100x-sem-1-assignment/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, requireRole } from "@/middleware/auth";
 import type { AuthVariables } from "./auth";
@@ -38,7 +38,10 @@ classRouter.post(
       return c.json({ success: false, error: "Failed to create class" }, 500);
     }
 
-    return c.json({ success: true, data: newClass }, 201);
+    return c.json(
+      { success: true, data: { ...newClass, studentIds: [] } },
+      201
+    );
   }
 );
 
@@ -81,17 +84,24 @@ classRouter.post(
       return c.json({ success: false, error: "Student not found" }, 404);
     }
 
-    const newStudentIds = classData.studentIds.includes(studentId)
-      ? classData.studentIds
-      : [...classData.studentIds, studentId];
+    const existing = await db.query.classEnrollments.findFirst({
+      where: {
+        classId: id,
+        studentId,
+      },
+    });
 
-    const [updatedClass] = await db
-      .update(classes)
-      .set({
-        studentIds: newStudentIds,
-      })
-      .where(eq(classes.id, id))
-      .returning();
+    if (!existing) {
+      await db.insert(classEnrollments).values({
+        classId: id,
+        studentId,
+      });
+    }
+
+    const updatedClass = await db.query.classes.findFirst({
+      where: { id },
+      with: { enrollments: true },
+    });
 
     if (!updatedClass) {
       return c.json(
@@ -100,7 +110,11 @@ classRouter.post(
       );
     }
 
-    return c.json({ success: true, data: updatedClass }, 200);
+    const studentIds = updatedClass.enrollments.map((e) => e.studentId);
+    return c.json(
+      { success: true, data: { ...updatedClass, studentIds } },
+      200
+    );
   }
 );
 
@@ -123,26 +137,39 @@ classRouter.get("/:id", authMiddleware, async (c) => {
     );
   }
 
-  if (role === "student" && !classData.studentIds.includes(userId)) {
-    return c.json(
-      { success: false, error: "Forbidden, not class teacher" },
-      403
-    );
-  }
-
-  const students = [];
-
-  for (const studentId of classData.studentIds) {
-    const student = await db.query.users.findFirst({
-      where: { id: studentId },
+  if (role === "student") {
+    const enrollment = await db.query.classEnrollments.findFirst({
+      where: {
+        classId: id,
+        studentId: userId,
+      },
     });
-    if (student) {
-      students.push({
-        id: student.id,
-        name: student.name,
-        email: student.email,
-      });
+
+    if (!enrollment) {
+      return c.json(
+        { success: false, error: "Forbidden, not class teacher" },
+        403
+      );
     }
   }
-  return c.json({ success: true, data: { ...classData, students } }, 200);
+
+  const enrollments = await db.query.classEnrollments.findMany({
+    where: { classId: id },
+    with: {
+      student: {
+        columns: { id: true, name: true, email: true },
+      },
+    },
+  });
+
+  const students = enrollments.map((e) => e.student);
+  const studentIds = enrollments.map((e) => e.studentId);
+
+  return c.json(
+    {
+      success: true,
+      data: { ...classData, students, studentIds },
+    },
+    200
+  );
 });
