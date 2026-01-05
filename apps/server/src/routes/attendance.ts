@@ -20,6 +20,10 @@ export type ActiveSession = {
 
 export let activeSession: ActiveSession = null;
 
+export function clearActiveSession() {
+  activeSession = null;
+}
+
 attendanceRouter.post(
   "/start",
   authMiddleware,

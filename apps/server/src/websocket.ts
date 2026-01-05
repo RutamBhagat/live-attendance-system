@@ -8,7 +8,7 @@ import {
   db,
   type TAttendanceStatus,
 } from "@100x-sem-1-assignment/db";
-import { activeSession } from "./routes/attendance";
+import { activeSession, clearActiveSession } from "./routes/attendance";
 
 const clients = new Map<WSContext, JWTPayload>();
 
@@ -160,9 +160,12 @@ async function handleDone(ws: WSContext, user: JWTPayload) {
   const absent = statuses.filter((s) => s === "absent").length;
   const total = statuses.length;
 
-  activeSession = null;
+  clearActiveSession();
 
-  broadcast({ event: "DONE", data: { message: "Attendance persisted" } });
+  broadcast({
+    event: "DONE",
+    data: { message: "Attendance persisted", present, absent, total },
+  });
 }
 
 async function handleMessage(msg: any, ws: WSContext, user: JWTPayload) {
