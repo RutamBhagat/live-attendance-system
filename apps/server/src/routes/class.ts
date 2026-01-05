@@ -173,3 +173,50 @@ classRouter.get("/:id", authMiddleware, async (c) => {
     200
   );
 });
+
+classRouter.get(
+  "/:id/my-attendance",
+  authMiddleware,
+  requireRole("student"),
+  async (c) => {
+    const { userId } = c.get("user");
+    const classId = c.req.param("id");
+
+    const classData = await db.query.classes.findFirst({
+      where: { id: classId },
+    });
+
+    if (!classData) {
+      return c.json({ success: false, error: "Class not found" }, 404);
+    }
+
+    const enrollment = await db.query.classEnrollments.findFirst({
+      where: {
+        classId: classId,
+        studentId: userId,
+      },
+    });
+
+    if (!enrollment) {
+      return c.json(
+        { success: false, error: "Forbidden, not enrolled in class" },
+        403
+      );
+    }
+
+    const record = await db.query.attendance.findFirst({
+      where: {
+        classId: classId,
+        studentId: userId,
+      },
+    });
+
+    return c.json({
+      success: true,
+      data: {
+        classId,
+        status: record?.status ?? null,
+      },
+    });
+  }
+);

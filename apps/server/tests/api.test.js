@@ -1,8 +1,17 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import WebSocket from "ws";
 
 const BASE_URL = process.env.SERVER_URL || "http://localhost:3000";
 const WS_URL = process.env.WS_URL || "ws://localhost:3000/ws";
+
+// Clear active session after each test to ensure test isolation
+afterEach(async () => {
+  try {
+    await request("POST", "/attendance/clear-session");
+  } catch (e) {
+    // Ignore errors if endpoint not available
+  }
+});
 
 async function request(method, path, body = null, token = null) {
   const options = {

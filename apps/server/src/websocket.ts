@@ -8,7 +8,7 @@ import {
   db,
   type TAttendanceStatus,
 } from "@100x-sem-1-assignment/db";
-import { activeSession, clearActiveSession } from "./routes/attendance";
+import { getActiveSession, clearActiveSession } from "./routes/attendance";
 
 const clients = new Map<WSContext, JWTPayload>();
 
@@ -36,6 +36,8 @@ async function handleAttendanceMarked(
     );
     return;
   }
+
+  const activeSession = getActiveSession();
   if (!activeSession) {
     ws.send(
       JSON.stringify({
@@ -62,6 +64,7 @@ async function handleTodaySummary(ws: WSContext, user: JWTPayload) {
     return;
   }
 
+  const activeSession = getActiveSession();
   if (!activeSession) {
     ws.send(
       JSON.stringify({
@@ -91,6 +94,7 @@ async function handleMyAttendance(ws: WSContext, user: JWTPayload) {
     return;
   }
 
+  const activeSession = getActiveSession();
   if (!activeSession) {
     ws.send(
       JSON.stringify({
@@ -122,6 +126,7 @@ async function handleDone(ws: WSContext, user: JWTPayload) {
     return;
   }
 
+  const activeSession = getActiveSession();
   if (!activeSession) {
     ws.send(
       JSON.stringify({
@@ -147,7 +152,7 @@ async function handleDone(ws: WSContext, user: JWTPayload) {
 
   const records = Object.entries(finalAttendance).map(
     ([studentId, status]) => ({
-      classId: activeSession!.classId,
+      classId: activeSession.classId,
       studentId,
       status: status,
     })
@@ -199,7 +204,7 @@ export function createWebSocketHandler() {
 
     if (!token) {
       return {
-        onMessage(event: any, ws: WSContext) {
+        onOpen(event: any, ws: WSContext) {
           ws.send(
             JSON.stringify({
               event: "ERROR",
@@ -208,6 +213,8 @@ export function createWebSocketHandler() {
           );
           ws.close();
         },
+        onMessage(event: any, ws: WSContext) {},
+        onClose(event: any, ws: WSContext) {},
       };
     }
 
@@ -216,7 +223,7 @@ export function createWebSocketHandler() {
       user = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
     } catch {
       return {
-        onMessage(event: any, ws: WSContext) {
+        onOpen(event: any, ws: WSContext) {
           ws.send(
             JSON.stringify({
               event: "ERROR",
@@ -225,6 +232,8 @@ export function createWebSocketHandler() {
           );
           ws.close();
         },
+        onMessage(event: any, ws: WSContext) {},
+        onClose(event: any, ws: WSContext) {},
       };
     }
 

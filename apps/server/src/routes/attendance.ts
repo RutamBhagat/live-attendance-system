@@ -18,10 +18,18 @@ export type ActiveSession = {
   attendance: Record<string, TAttendanceStatus>;
 } | null;
 
-export let activeSession: ActiveSession = null;
+let activeSession: ActiveSession = null;
+
+export function getActiveSession(): ActiveSession {
+  return activeSession;
+}
 
 export function clearActiveSession() {
   activeSession = null;
+}
+
+export function updateActiveSession(session: ActiveSession) {
+  activeSession = session;
 }
 
 attendanceRouter.post(
@@ -52,12 +60,17 @@ attendanceRouter.post(
       );
     }
 
-    activeSession = {
+    updateActiveSession({
       classId,
       startedAt: new Date().toISOString(),
       attendance: {},
-    };
+    });
 
     return c.json({ success: true, data: activeSession }, 200);
   }
 );
+
+attendanceRouter.post("/clear-session", async (c) => {
+  clearActiveSession();
+  return c.json({ success: true }, 200);
+});
